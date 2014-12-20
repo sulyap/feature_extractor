@@ -1,44 +1,34 @@
 #include "glcm_feature_extractor.hpp"
 
-GLCMFeatureExtractor::GLCMFeatureExtractor(Mat image, int direction): FeatureExtractor(image)
-{
+GLCMFeatureExtractor::GLCMFeatureExtractor(Mat image, int direction): FeatureExtractor(image) {
   this->direction = direction;
 
   // Create an empty 256x256 matrix
   Mat glcmMatrix = Mat::zeros(256, 256, CV_32F);
 
-  for(int r = 0; r < image.rows; r++)
-  {
-    for(int c = 0; c < image.cols; c++)
-    {
+  for(int r = 0; r < image.rows; r++) {
+    for(int c = 0; c < image.cols; c++) {
       // Set the examined pixel depending on angle direction
       int rowNext = r;
       int colNext = c;
 
-      if(direction == ANGLE_90)
-      {
+      if(direction == ANGLE_90) {
         rowNext = r - 1;
         colNext - c;
-      }
-      else if(direction == ANGLE_45)
-      {
+      } else if(direction == ANGLE_45) {
         rowNext = r - 1;
         colNext = c + 1;
-      }
-      else if(direction == ANGLE_180)
-      {
+      } else if(direction == ANGLE_180) {
         rowNext = r;
         colNext = c + 1;
       }
-      else if(direction == ANGLE_135)
-      {
+      else if(direction == ANGLE_135) {
         rowNext = r + 1;
         colNext = c + 1;
       }
 
       if(isValidPixel(r, c, (height - 1), (width - 1)) &&
-          isValidPixel(rowNext, colNext, (height - 1), (width - 1)))
-      {
+          isValidPixel(rowNext, colNext, (height - 1), (width - 1))) {
         float valCurrent = grayscaleImage.at<uchar>(r, c);
         float valNext = grayscaleImage.at<uchar>(rowNext, colNext);
 
@@ -53,10 +43,8 @@ GLCMFeatureExtractor::GLCMFeatureExtractor(Mat image, int direction): FeatureExt
   float n = 0;
   float min = 0;
   float max = 0;
-  for(int r = 0; r < glcmMatrix.rows; r++)
-  {
-    for(int c = 0; c < glcmMatrix.cols; c++)
-    {
+  for(int r = 0; r < glcmMatrix.rows; r++) {
+    for(int c = 0; c < glcmMatrix.cols; c++) {
       n = n + (float)glcmMatrix.at<float>(r, c); 
 
       if(glcmMatrix.at<float>(r, c) > max)
@@ -67,10 +55,8 @@ GLCMFeatureExtractor::GLCMFeatureExtractor(Mat image, int direction): FeatureExt
   Mat visualMatrix = Mat::zeros(256, 256, CV_8UC3);
   glcmVisual = Mat::zeros(256, 256, CV_8UC3);
   glcmNormalized = Mat::zeros(256, 256, DataType<float>::type);
-  for(int r = 0; r < 256; r++)
-  {
-    for(int c = 0; c < 256; c++)
-    {
+  for(int r = 0; r < 256; r++) {
+    for(int c = 0; c < 256; c++) {
       float normalized = (glcmMatrix.at<float>(r, c) / n);
       glcmNormalized.at<float>(r, c) = normalized;
 
@@ -85,21 +71,57 @@ GLCMFeatureExtractor::GLCMFeatureExtractor(Mat image, int direction): FeatureExt
   cvtColor(glcmVisual, glcmVisual, CV_BGR2GRAY);
 }
 
-vector<float> GLCMFeatureExtractor::getFeatures()
-{
+vector<float> GLCMFeatureExtractor::getFeatures() {
   vector<float> features;
+
+  features.push_back(getEnergy());
+  features.push_back(getContrast());
+  features.push_back(getEntropy());
 
   return features;
 }
 
-bool GLCMFeatureExtractor::isValidPixel(int r, int c, int max_row, int max_col)
-{
-  if(r < 0 || r > max_row || c < 0 || c > max_col)
-  {
-    return false;
+float GLCMFeatureExtractor::getEntropy() {
+  float result = 0;
+
+  for(int r = 0; r < glcmNormalized.rows; r++) {
+    for(int c = 0; c < glcmNormalized.cols; c++) {
+      if(glcmNormalized.at<float>(r, c) > 0)
+        result += glcmNormalized.at<float>(r, c) * log(glcmNormalized.at<float>(r, c));
+    }
   }
-  else
-  {
+
+  return -result;
+}
+
+float GLCMFeatureExtractor::getEnergy() {
+  float result = 0;
+
+  for(int r = 0; r < glcmNormalized.rows; r++) {
+    for(int c = 0; c < glcmNormalized.cols; c++) {
+      result += pow(glcmNormalized.at<float>(r, c), 2);
+    }
+  }
+
+  return result;
+}
+
+float GLCMFeatureExtractor::getContrast() {
+  float result = 0;
+
+  for(int r = 0; r < glcmNormalized.rows; r++) {
+    for(int c = 0; c < glcmNormalized.cols; c++) {
+      result += pow((r - c), 2) * glcmNormalized.at<float>(r, c);
+    }
+  }
+
+  return result;
+}
+
+bool GLCMFeatureExtractor::isValidPixel(int r, int c, int max_row, int max_col) {
+  if(r < 0 || r > max_row || c < 0 || c > max_col) {
+    return false;
+  } else {
     return true;
   }
 }

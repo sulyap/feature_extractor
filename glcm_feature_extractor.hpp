@@ -30,6 +30,9 @@ public:
 
   GLCMFeatureExtractor(Mat image, int direction);
   vector<float> getFeatures();
+  float getEnergy();
+  float getContrast();
+  float getEntropy();
 
   bool isValidPixel(int r, int c, int max_row, int max_col);
 };
