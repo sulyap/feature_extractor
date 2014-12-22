@@ -22,17 +22,26 @@ using namespace cv;
 
 class GLCMFeatureExtractor: public FeatureExtractor
 {
+  float getMean();
+  float getP();
+  float getVariance();
 
 public:
   int direction;
   Mat glcmVisual;
   Mat glcmNormalized;
+  float mean;
+  float variance;
+  float p;
+  float contrast;
+  float entropy;
+  float dissimilarity;
+  float homogenity;
+  float correlation;
+  float energy;
 
   GLCMFeatureExtractor(Mat image, int direction);
   vector<float> getFeatures();
-  float getEnergy();
-  float getContrast();
-  float getEntropy();
 
   bool isValidPixel(int r, int c, int max_row, int max_col);
 };

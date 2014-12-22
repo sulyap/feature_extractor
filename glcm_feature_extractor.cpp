@@ -69,50 +69,74 @@ GLCMFeatureExtractor::GLCMFeatureExtractor(Mat image, int direction): FeatureExt
   }
 
   cvtColor(glcmVisual, glcmVisual, CV_BGR2GRAY);
+
+  // Setup mean, variance and p
+  this->p = getP();
+  this->mean = getMean();
+  this->variance = getVariance();
+
+  this->correlation = 0;
+  this->energy = 0;
+  this->contrast = 0;
+  this->dissimilarity = 0;
+  this->homogenity = 0;
+
+  for(int r = 0; r < glcmNormalized.rows; r++) {
+    for(int c = 0; c < glcmNormalized.cols; c++) {
+      this->correlation += ((glcmNormalized.at<float>(r, c) * (r * c)) - (this->mean * this->mean)) / (this->variance * this->variance);
+      this->contrast += pow((r - c), 2) * glcmNormalized.at<float>(r, c);
+
+      if(glcmNormalized.at<float>(r, c) > 0) {
+        this->energy += pow(glcmNormalized.at<float>(r, c), 2);
+        this->entropy += glcmNormalized.at<float>(r, c) * log(glcmNormalized.at<float>(r, c));
+        this->dissimilarity += glcmNormalized.at<float>(r, c) * abs(r - c);
+        this->homogenity += glcmNormalized.at<float>(r, c) / (1 + pow((r - c), 2));
+      }
+    }
+  }
+
+  this->entropy = -this->entropy;
 }
 
 vector<float> GLCMFeatureExtractor::getFeatures() {
   vector<float> features;
 
-  features.push_back(getEnergy());
-  features.push_back(getContrast());
-  features.push_back(getEntropy());
+  features.push_back(this->energy);
+  features.push_back(this->contrast);
+  features.push_back(this->entropy);
+  features.push_back(this->dissimilarity);
+  features.push_back(this->homogenity);
+  features.push_back(this->correlation);
 
   return features;
 }
 
-float GLCMFeatureExtractor::getEntropy() {
+
+float GLCMFeatureExtractor::getVariance() {
   float result = 0;
 
   for(int r = 0; r < glcmNormalized.rows; r++) {
-    for(int c = 0; c < glcmNormalized.cols; c++) {
-      if(glcmNormalized.at<float>(r, c) > 0)
-        result += glcmNormalized.at<float>(r, c) * log(glcmNormalized.at<float>(r, c));
-    }
-  }
-
-  return -result;
-}
-
-float GLCMFeatureExtractor::getEnergy() {
-  float result = 0;
-
-  for(int r = 0; r < glcmNormalized.rows; r++) {
-    for(int c = 0; c < glcmNormalized.cols; c++) {
-      result += pow(glcmNormalized.at<float>(r, c), 2);
-    }
+    result += pow((this->p - this->mean), 2);
   }
 
   return result;
 }
 
-float GLCMFeatureExtractor::getContrast() {
+float GLCMFeatureExtractor::getP() {
   float result = 0;
 
   for(int r = 0; r < glcmNormalized.rows; r++) {
-    for(int c = 0; c < glcmNormalized.cols; c++) {
-      result += pow((r - c), 2) * glcmNormalized.at<float>(r, c);
-    }
+    result += glcmNormalized.at<float>(r, r);
+  }
+
+  return result;
+}
+
+float GLCMFeatureExtractor::getMean() {
+  float result = 0;
+
+  for(int r = 0; r < glcmNormalized.rows; r++) {
+    result += glcmNormalized.at<float>(r, r) * r;
   }
 
   return result;

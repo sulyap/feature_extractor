@@ -80,12 +80,13 @@ int main(int argc, char **argv) {
     cout << features4.at(i) << " ";
   }
   cout << endl;
-
+  /*
   imshow("1", fe1->glcmVisual);
   imshow("2", fe2->glcmVisual);
   imshow("3", fe3->glcmVisual);
   imshow("4", fe4->glcmVisual);
   waitKey(0);
+  */
 
   return 0;
 }
