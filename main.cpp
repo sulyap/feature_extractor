@@ -9,6 +9,7 @@
 
 #include "feature_extractor.hpp"
 #include "glcm_feature_extractor.hpp"
+#include "lbp_feature_extractor.hpp"
 
 using namespace std;
 using namespace cv;
@@ -49,6 +50,7 @@ int main(int argc, char **argv) {
   image_width = main_image.rows;
   image_height = main_image.cols;
 
+  cout << "GLCM Features:" << endl;
   GLCMFeatureExtractor *fe1 = new GLCMFeatureExtractor(main_image, 1);
   cout << "fe1 Features:" << endl;
   vector<float> features1 = fe1->getFeatures();
