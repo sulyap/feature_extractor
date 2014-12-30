@@ -85,6 +85,9 @@ GLCMFeatureExtractor::GLCMFeatureExtractor(Mat image, int direction): FeatureExt
     for(int c = 0; c < glcmNormalized.cols; c++) {
       this->correlation += ((glcmNormalized.at<float>(r, c) * (r * c)) - (this->mean * this->mean)) / (this->variance * this->variance);
       this->contrast += pow((r - c), 2) * glcmNormalized.at<float>(r, c);
+      if(this->contrast != this->contrast) {
+        cout << "ERROR. NAN DETECTED FOR CONTRAST" << endl;
+      }
 
       if(glcmNormalized.at<float>(r, c) > 0) {
         this->energy += pow(glcmNormalized.at<float>(r, c), 2);

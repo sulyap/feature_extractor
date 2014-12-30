@@ -7,6 +7,8 @@ install_manifest.txt
 
 # ignore binary
 feature_selector
+glcm
+lbp
 
 # ignore vim swp files
 *.swp

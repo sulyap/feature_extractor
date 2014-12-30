@@ -54,10 +54,26 @@ LBPFeatureExtractor::LBPFeatureExtractor(Mat image, int num_bins, int cell_size)
   }
 
   lbpImage.copyTo(lbpVisual);
+
+  for(int r = 0; r < lbpImage.rows - (lbpImage.rows % cell_size); r += cell_size) {
+    for(int c = 0; c < lbpImage.cols - (lbpImage.cols % cell_size); c += cell_size) {
+      Rect rect(c, r, cell_size, cell_size);
+      Mat cell;
+      lbpImage(rect).copyTo(cell);
+
+      vector<float> cellMatrixVector = HistoUtil::matrixToVector(cell);
+      vector<float> cellHistogram = HistoUtil::computeVectorHistogram(cellMatrixVector, 0, 255, num_bins);
+      vector<float> cellNormalizedHistogram = HistoUtil::normalizeHistogram(cellHistogram);
+
+      for(int i = 0; i < cellHistogram.size(); i++) {
+        features.push_back(cellHistogram.at(i));
+        normalized_features.push_back(cellNormalizedHistogram.at(i));
+      }
+    }
+  }
 }
 
 vector<float> LBPFeatureExtractor::getFeatures() {
-  vector<float> features;
 
-  return features;
+  return normalized_features;
 }

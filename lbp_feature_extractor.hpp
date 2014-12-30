@@ -25,6 +25,8 @@ public:
   Mat lbpVisual;
   LBPFeatureExtractor(Mat image, int num_bins, int cell_size);
   vector<float> getFeatures();
+  vector<float> features;
+  vector<float> normalized_features;
 
   bool isValidPixel(int r, int c, int max_row, int max_col);
 };
